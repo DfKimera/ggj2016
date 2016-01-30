@@ -1,45 +1,79 @@
 package engine {
-	import flash.events.Event;
+
+	import engine.interfaces.Selectable;
+	import engine.interfaces.Targetable;
 
 	import game.Assets;
+	import game.Stats;
+
+	import org.flixel.FlxBasic;
 
 	import org.flixel.FlxG;
+	import org.flixel.FlxGroup;
 
 	import org.flixel.FlxPath;
 
 	import org.flixel.FlxPoint;
+	import org.flixel.FlxSound;
+	import org.flixel.FlxU;
 
 	import org.flixel.plugin.photonstorm.FlxExtendedSprite;
 
-	public class Unit extends FlxExtendedSprite {
+	public class Unit extends FlxExtendedSprite implements Targetable, Selectable {
 
 		public static const TASK_IDLE:int = 0;
-		public static const TASK_MOVING:int = 1;
+		public static const TASK_MOVE:int = 1;
+		public static const TASK_ATTACK:int = 2;
+		public static const TASK_HARVEST:int = 3;
 
-		public static const COMMAND_MOVE = 1;
-		public static const COMMAND_ATTACK = 2;
-		public static const COMMAND_STOP = 3;
+		public static const ACTION_STANDING:int = 1;
+		public static const ACTION_MOVING:int = 2;
+		public static const ACTION_WORKING:int = 3;
+
+		public static const COMMAND_MOVE:int = 1;
+		public static const COMMAND_ATTACK:int = 2;
+		public static const COMMAND_STOP:int = 3;
 
 		public var id:int;
 		public var owner:int;
 		public var type:String;
 		public var direction:int = DOWN;
-		public var speed:int = 300;
+
+		public var sfxHit:FlxSound;
+
+		public var stats:UnitStats;
+		public var grid:Grid;
+		public var group:FlxGroup;
+
+		public var attackCooldown:Number = 0;
+		public var huntCooldown:Number = 0;
+		public var bodyDecay:int = 400;
 
 		public var currentTask:int = TASK_IDLE;
-		public var isSelected:Boolean = false;
+		public var currentAction:int = ACTION_STANDING;
+		public var currentTarget:Targetable = null;
 
+		public var isSelected:Boolean = false;
 		private var selection:Selection;
 
-		public function Unit(id:int, owner:int, type:String, x:int, y:int, selection:Selection) {
+		public function Unit(id:int, owner:int, type:String, x:int, y:int, grid:Grid, selection:Selection, group:FlxGroup) {
 			this.id = id;
 			this.type = type;
+			this.owner = owner;
+
+			this.grid = grid;
 			this.selection = selection;
+			this.group = group;
+
+			this.stats = Stats.getForUnit(type);
 
 			super(x, y);
 
-			this.mass = 1000;
-			this.drag = new FlxPoint(10, 10);
+			this.health = stats.health;
+			this.mass = stats.mass;
+			this.drag = new FlxPoint(stats.drag, stats.drag);
+			this.elasticity = 0;
+			this.sfxHit = Audio.getTrack('hit');
 
 			this.clickable = true;
 			this.enableMouseClicks(true, false);
@@ -59,7 +93,12 @@ package engine {
 			addAnimation("walk_up", [60,61,62,63,64,65,66,67,68,69], 20);
 			addAnimation("walk_right", [70,71,72,73,74,75,76,77,78,79], 20);
 
-			play("idle_down");
+		}
+
+		private function debug(namespace:String, ... args):void {
+			args.unshift("[" + namespace + "] ");
+			args.unshift(this);
+			trace.apply(this, args);
 		}
 
 
@@ -72,29 +111,147 @@ package engine {
 
 		public function follow(path:FlxPath):void {
 			if(this.path) {
+				debug("moving", "cancelling existing path");
 				this.stopFollowingPath(true);
 			}
 
 			if(!path) return;
 
-			trace("Following path: ", path.nodes, speed);
+			debug("moving", " following path ", path.nodes, stats.speed);
 
-			currentTask = TASK_MOVING;
+			currentTask = TASK_MOVE;
+			currentAction = ACTION_MOVING;
 
-			this.followPath(path, speed, PATH_FORWARD, false);
+			this.followPath(path, stats.speed, PATH_FORWARD, false);
+		}
+
+		public function attack(target:Targetable):void {
+
+			if(this.path) {
+				this.stopFollowingPath(true);
+			}
+
+			currentTask = TASK_ATTACK;
+			currentTarget = target;
+
+			debug("combat", "going to attack", target);
 		}
 
 		public override function update():void {
 			super.update();
 
-			switch(currentTask) {
-				case TASK_MOVING:
-					resolveDirection();
-					renderAnimation('walk');
-					checkPathEnd();
-					break;
+			if(!alive) {
+				handleBodyDecay();
+				return;
 			}
 
+			handleAnimations();
+			handleTasks();
+		}
+
+		private function handleAnimations():void {
+			switch(currentAction) {
+				case ACTION_MOVING:
+					renderAnimation('walk');
+					break;
+				case ACTION_WORKING:
+				case ACTION_STANDING:
+				default:
+					renderAnimation('idle');
+					break;
+			}
+		}
+
+		private function handleTasks():void {
+			switch(currentTask) {
+				case TASK_MOVE:
+					taskMove();
+					break;
+				case TASK_ATTACK:
+					taskAttack();
+					break;
+				default:
+				case TASK_IDLE:
+					taskIdle();
+					break;
+			}
+		}
+
+		private function handleBodyDecay():void {
+			if(bodyDecay <= 0) {
+				this.group.remove(this);
+				exists = false;
+			}
+
+			bodyDecay--;
+		}
+
+		private function taskMove():void {
+			resolveDirection();
+			renderAnimation('walk');
+
+			if(pathSpeed == 0 || path.nodes.length <= 0) {
+				debug("moving", "arrived at destination");
+				currentTask = TASK_IDLE;
+				currentAction = ACTION_STANDING;
+
+				renderAnimation('idle');
+				stopFollowingPath(true);
+			}
+
+		}
+
+		private function taskAttack():void {
+			var distance:Number = FlxU.getDistance(this.getMidpoint(), this.currentTarget.getMidpoint());
+
+			if(!currentTarget.isAlive()) {
+				debug("combat", "target ", currentTarget, " is dead, becoming idle");
+				currentTask = TASK_IDLE;
+				return;
+			}
+
+			if(distance <= stats.attackDistance) {
+				currentAction = ACTION_WORKING;
+
+				if(attackCooldown <= 0) {
+					debug("combat", "hitting ", currentTarget, " with ", stats.attackDamage);
+					currentTarget.onDamage(this, stats.attackDamage);
+					attackCooldown = 1000 / stats.attackRate;
+				}
+
+				attackCooldown--;
+
+			} else {
+				attackCooldown = 1000 / stats.attackRate;
+				currentAction = ACTION_MOVING;
+
+
+				if(huntCooldown <= 0) {
+					debug("combat", "tracking new route towards ", currentTarget);
+
+					huntCooldown = stats.huntTimeout;
+
+					if(pathSpeed == 0 || (path && path.nodes.length <= 0)) stopFollowingPath(true);
+
+					var path:FlxPath = grid.findPath(this.getMidpoint(), currentTarget.getMidpoint());
+
+					if(!path) {
+						debug("combat", "no path found! will try again next time", currentTarget);
+						return;
+					}
+
+					debug("combat", "new path to target", currentTarget, path);
+
+					this.followPath(path, stats.speed, PATH_FORWARD, false);
+				}
+
+				huntCooldown--;
+
+			}
+		}
+
+		private function taskIdle():void {
+			currentAction = ACTION_STANDING;
 		}
 
 		public override function draw():void {
@@ -117,21 +274,49 @@ package engine {
 			}
 		}
 
-		public function checkPathEnd():void {
-			if(pathSpeed == 0 || path.nodes.length <= 0) {
-				currentTask = TASK_IDLE;
-				renderAnimation('idle');
-				stopFollowingPath(true);
+		public function isAlive():Boolean {
+			return alive;
+		}
+
+		public function onDamage(attacker:FlxBasic, damage:int):void {
+			if(!alive) return;
+
+			debug("combat", " took ", damage, " damage from ", attacker);
+
+			Audio.playInLocalArea(sfxHit, this);
+
+			health -= damage;
+
+			if(health <= 0) {
+				onDeath();
 			}
 		}
 
+		public function onDeath():void {
+			if(!alive) return;
+
+
+			debug("combat", this, " is dead");
+
+			isSelected = false;
+			exists = false;
+			alive = false;
+			solid = false;
+
+			alpha = 0.5;
+		}
+
 		public function onSelect():void {
-			trace("Selected: ", this);
+			if(!alive) return;
+
+			debug("selection", "is selected");
 			isSelected = true;
 		}
 
 		public function onDeselect():void {
-			trace("Deselected: ", this);
+			if(!alive) return;
+
+			debug("selection", "deselected");
 			isSelected = false;
 		}
 
@@ -140,12 +325,9 @@ package engine {
 			switch(command) {
 				case COMMAND_MOVE:
 					var moveTarget:FlxPoint = parameters[0] as FlxPoint;
-					var grid:Grid = parameters[1] as Grid;
 
-					trace("Unit Move: ", id, moveTarget, grid);
-
-					if(!moveTarget) { trace("INVALID TARGET FOR MOVE COMMAND"); }
-					if(!grid) { trace("INVALID GRID FOR MOVE COMMAND"); }
+					debug("command", "move towards", moveTarget);
+					if(!moveTarget) { trace("command.ERROR", "Invalid target for move command"); }
 
 					var path:FlxPath = grid.findPath(this.getMidpoint(), moveTarget, false, false);
 
@@ -153,10 +335,12 @@ package engine {
 
 					break;
 				case COMMAND_ATTACK:
-					var attackTarget:Unit = parameters[0] as Unit;
+					var attackTarget:Targetable = parameters[0] as Targetable;
 
-					trace("Unit Attack: ", this, attackTarget);
-					if(!attackTarget) { trace("INVALID ATTACK TARGET"); }
+					debug("command", "attack", attackTarget);
+					if(!attackTarget) { debug("command.ERROR", "Invalid attack target"); }
+
+					this.attack(attackTarget);
 
 					break;
 			}
@@ -164,7 +348,7 @@ package engine {
 		}
 
 		public override function toString():String {
-			return "<Unit:" + owner + "; id=" + id + "; pos=" + x + "," + y + ">";
+			return "<Unit:" + type + ":" + owner + "; id=" + id + "; pos=" + x + "," + y + ">";
 		}
 
 		public static function handleUnitClick(unit:Unit, x:Number, y:Number):void {

@@ -39,6 +39,8 @@ package engine {
 			FlxG.debug = true;
 			FlxG.visualDebug = true;
 
+			Audio.setup();
+
 			terrain = new Terrain();
 			grid = new Grid(terrain);
 
@@ -118,7 +120,7 @@ package engine {
 
 				if(hasTargetedUnit) return;
 
-				selection.commandSelected(Unit.COMMAND_MOVE, [FlxG.mouse.getWorldPosition(), grid]);
+				selection.commandSelected(Unit.COMMAND_MOVE, [FlxG.mouse.getWorldPosition()]);
 
 			}
 		}
@@ -127,7 +129,7 @@ package engine {
 			var x:Number = FlxU.getRandom([50, 120, 180, 240]) as Number;
 			var y:Number = FlxU.getRandom([50, 120, 180, 240]) as Number;
 
-			$units.add(new Unit(++unitIndex, 1, "sample", x, y, selection));
+			$units.add(new Unit(++unitIndex, 1, "peasant", x, y, grid, selection, $units));
 		}
 
 	}

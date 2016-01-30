@@ -22,8 +22,18 @@ package game {
 		[Embed(source="../../assets/selection_marker.png")]
 		public static var SELECTION_MARKER:Class;
 
+		[Embed(source="../../assets/hit.mp3")]
+		public static var AUDIO_HIT_1:Class;
+
 		public static function getUnitByType(type:String):Class {
-			return Assets["UNIT_" + type.replace('/', '_').toUpperCase()];
+			var asset:Class = Assets["UNIT_" + type.replace('/', '_').toUpperCase()];
+
+			if(!asset) {
+				trace("[assets.WARNING] could not find unit sprites for type ", type, ", using generic");
+				return UNIT_SAMPLE;
+			}
+
+			return asset;
 		}
 
 	}

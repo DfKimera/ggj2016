@@ -86,12 +86,16 @@ package engine {
 
 		public function commandSelected(command:int, parameters:Array = null):void {
 			if(hasStructureSelected()) {
+				if(!selectedStructure.alive) return;
+
 				selectedStructure.onCommand(command, parameters);
+
 				return;
 			}
 
 			if(hasUnitSelected()) {
 				for each(var unit:Unit in selectedUnits) {
+					if(!unit.alive) continue;
 					unit.onCommand(command, parameters);
 				}
 			}
