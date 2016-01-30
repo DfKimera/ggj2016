@@ -1,6 +1,9 @@
 package {
 
+	import engine.RightClick;
+
 	import flash.display.Sprite;
+	import flash.events.MouseEvent;
 	import flash.system.Security;
 
 	import game.Game;
@@ -15,6 +18,8 @@ package {
 		public function Bootstrap() {
 
 			Security.allowDomain("*");
+
+			RightClick.setup(this);
 
 			Bootstrap.instance = this;
 			Bootstrap.game = new Game();

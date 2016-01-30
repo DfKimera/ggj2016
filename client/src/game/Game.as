@@ -1,6 +1,7 @@
 package game {
 
 	import engine.RTSMatch;
+	import engine.RightClick;
 
 	import org.flixel.FlxG;
 
@@ -10,7 +11,7 @@ package game {
 	public class Game extends FlxGame {
 
 		public function Game() {
-			super(1024, 768, RTSMatch, 1, 60, 30);
+			super(1024, 768, RTSMatch, 1, 60, 30, true);
 
 			setupEnginePlugins();
 		}
@@ -19,6 +20,11 @@ package game {
 			if (FlxG.getPlugin(FlxMouseControl) == null) {
 				FlxG.addPlugin(new FlxMouseControl);
 			}
+		}
+
+		protected override function update():void {
+			super.update();
+			RightClick.clearLastFrame();
 		}
 
 	}

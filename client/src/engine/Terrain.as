@@ -1,8 +1,6 @@
 package engine {
+
 	import game.Assets;
-
-	import org.flixel.FlxObject;
-
 	import org.flixel.FlxTilemap;
 
 	public class Terrain extends FlxTilemap {
@@ -10,7 +8,7 @@ package engine {
 		public function Terrain() {
 			super();
 
-			loadMap(new Assets.MAP_SAMPLE, Assets.TILES_SAMPLE, 32, 32);
+			loadMap(new Assets.MAP_SAMPLE_GFX, Assets.TILES_SAMPLE, 32, 32, 0, 0, 1, 1024);
 		}
 
 	}
