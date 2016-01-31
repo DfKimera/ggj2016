@@ -20,6 +20,8 @@ namespace GGJ2016 {
 		public int matchStatus = STATUS_LOBBY;
 		public int numPlayers = 0;
 
+		public int hostPlayerID = 0;
+
 		public IMultiplayerController controller;
 
 		public override void GameStarted() {
@@ -32,10 +34,19 @@ namespace GGJ2016 {
 		}
 		
 		public override void UserJoined(Player player) {
+			if(hostPlayerID == 0) {
+				hostPlayerID = player.Id;
+				player.isHost = true;
+			}
+
 			controller.onPlayerJoined(player);
 		}
 		
 		public override void UserLeft(Player player) {
+			if(player.isHost) {
+				hostPlayerID = 0;
+			}
+
 			controller.onPlayerLeft(player);
 		}
 		

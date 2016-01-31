@@ -37,6 +37,14 @@ package engine.networking {
 			return Player.getByID(net.localPlayerID);
 		}
 
+		public function getHostPlayerID():int {
+			return net.hostPlayerID;
+		}
+
+		public function getHostPlayer():Player {
+			return Player.getByID(net.hostPlayerID);
+		}
+
 		public function networkReady(client:Client):void { }
 	}
 }

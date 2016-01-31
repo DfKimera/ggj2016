@@ -1,5 +1,6 @@
 package engine.states {
 
+	import engine.gameplay.Level;
 	import engine.networking.NetworkedGameState;
 	import engine.services.Log;
 	import engine.ui.UITextInput;
@@ -32,6 +33,9 @@ package engine.states {
 		public override function create():void {
 			super.create();
 
+			FlxG.debug = true;
+			FlxG.visualDebug = false;
+
 			titleLbl = new FlxText(0, 50, 1024, "GGJ16 - Ritual");
 			titleLbl.color = 0xFFFFFF;
 			titleLbl.size = 24;
@@ -41,7 +45,7 @@ package engine.states {
 			nicknameLbl.color = 0xFFFFF;
 			nicknameLbl.size = 14;
 
-			nicknameInput = new UITextInput(50, 100, 200, 30, "Guest", Config.DEFAULT_TEXT_FORMAT, onNicknameChange);
+			nicknameInput = new UITextInput(50, 100, 200, 30, net.nickname, Config.DEFAULT_TEXT_FORMAT, onNicknameChange);
 			nicknameInput.active = false;
 
 			newRoomLbl = new FlxText(800, 70, 500, "Create new room:");

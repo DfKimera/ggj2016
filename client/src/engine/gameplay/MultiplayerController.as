@@ -58,6 +58,11 @@ package engine.gameplay {
 			net.sendMessage(MessageTypes.CL_UNIT_CREATE, type, x, y);
 		}
 
+		public function sendStructureSpawn(type:String, x:Number, y:Number):void {
+			Log.write("[net.local.send] Structure spawn: ", type, x, y);
+			net.sendMessage(MessageTypes.CL_STRUCTURE_CREATE, type, x, y);
+		}
+
 		// -------------------------------------------------------------------------------------------------------------
 
 		public function onChatMessage(m:Message):void {
@@ -138,6 +143,16 @@ package engine.gameplay {
 
 			entity.x = targetX;
 			entity.y = targetY;
+		}
+
+		public function onStructureCreate(m:Message):void {
+			var entityID:int = m.getInt(0);
+			var ownerID:int = m.getInt(1);
+			var type:String = m.getString(2);
+			var x:Number = m.getNumber(3);
+			var y:Number = m.getNumber(4);
+
+			game.spawnStructure(entityID, ownerID, type, x, y);
 		}
 	}
 }

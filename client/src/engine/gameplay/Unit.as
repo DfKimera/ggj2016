@@ -81,15 +81,17 @@ package engine.gameplay {
 		}
 
 		public function setupAnimations():void {
-			addAnimation("idle_down", [0], 10); //,0,0,0,0,0,0,0,0,0,0,0,1,2,1], 10);
-			addAnimation("idle_left", [10], 10); //,10,10,10,10,10,10,10,10,10,10,10,11,12,11], 10);
-			addAnimation("idle_up", [20], 10);
-			addAnimation("idle_right", [30], 10); //,30,30,30,30,30,30,30,30,30,30,30,31,32,31], 10);
+			addAnimation("idle_left", [2], 0);
+			addAnimation("idle_down", [7], 0);
+			addAnimation("idle_up", [12], 0);
+			addAnimation("idle_right", [17], 0);
 
-			addAnimation("walk_down", [40,41,42,43,44,45,46,47,48,49], 20);
-			addAnimation("walk_left", [50,51,52,53,54,55,56,57,58,59], 20);
-			addAnimation("walk_up", [60,61,62,63,64,65,66,67,68,69], 20);
-			addAnimation("walk_right", [70,71,72,73,74,75,76,77,78,79], 20);
+			addAnimation("walk_left", [0,1,2,3,4], 20);
+			addAnimation("walk_down", [5,6,7,8,9], 20);
+			addAnimation("walk_up", [10,11,12,13,14], 20);
+			addAnimation("walk_right", [15,16,17,18,19], 20);
+
+			addAnimation("attack", [20,20,20,21,21], 8);
 		}
 
 		public function setupCollision():void {
@@ -209,6 +211,8 @@ package engine.gameplay {
 		}
 
 		private function taskAttack():void {
+			solid = true;
+
 			if(!isLocal()) return;
 
 			var distance:Number = FlxU.getDistance(this.getMidpoint(), this.currentTarget.getMidpoint());
@@ -220,8 +224,7 @@ package engine.gameplay {
 			}
 
 			if(distance <= stats.attackDistance) {
-				currentAction = ACTION_ATTACKING; // TODO: this should be controlled by the chain end; swap onDamage with onAttack
-				solid = true;
+				currentAction = ACTION_ATTACKING;
 
 				if(attackCooldown <= 0) {
 					debug("combat", "hitting ", currentTarget, " with ", stats.attackDamage);
@@ -234,7 +237,7 @@ package engine.gameplay {
 			} else {
 				attackCooldown = 1000 / stats.attackRate;
 				currentAction = ACTION_MOVING;
-				solid = false;
+				//solid = false;
 
 
 				if(huntCooldown <= 0) {

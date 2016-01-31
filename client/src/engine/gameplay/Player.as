@@ -8,11 +8,13 @@ package engine.gameplay {
 		public var id:int;
 		public var nickname:String;
 		public var isLocal:Boolean;
+		public var isHost:Boolean;
 
-		public function Player(id:int, nickname:String, isLocal:Boolean):void {
+		public function Player(id:int, nickname:String, isLocal:Boolean, isHost:Boolean):void {
 			this.id = id;
 			this.nickname = nickname;
 			this.isLocal = isLocal;
+			this.isHost = isHost;
 
 			register(this);
 		}

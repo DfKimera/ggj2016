@@ -34,7 +34,13 @@ namespace GGJ2016 {
 			room.Broadcast(MessageTypes.SV_PLAYER_JOINED, player.Id, player.nickname);
 
 			foreach(Player p in room.Players) {
-				player.Send(MessageTypes.SV_PLAYER_REGISTER, p.Id, p.nickname, (player.Id == p.Id));
+
+				if(p.Id != player.Id) { // send to everyone but joining player his own data
+					p.Send(MessageTypes.SV_PLAYER_REGISTER, p.Id, p.nickname, false, p.isHost);
+				}
+
+				// send him everyone's data (including his own)
+				player.Send(MessageTypes.SV_PLAYER_REGISTER, p.Id, p.nickname, (player.Id == p.Id), p.isHost);
 			}
 		}
 

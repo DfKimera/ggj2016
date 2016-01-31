@@ -10,7 +10,7 @@ package engine.services {
 		public static var log:Array = [];
 
 		public static function write(... args):void {
-			trace.apply(args);
+			trace.apply(null, args);
 
 			if(ExternalInterface.available) {
 				ExternalInterface.call("console.log", args.join("\t"));

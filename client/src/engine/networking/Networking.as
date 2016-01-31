@@ -29,7 +29,8 @@ package engine.networking {
 		public var isPlaying:Boolean = false;
 
 		public var localPlayerID:int = 0;
-		public var nickname:String = "Guest";
+		public var hostPlayerID:int = 0;
+		public var nickname:String = "Guest_" + String(int(FlxG.random() * 10000));
 
 		public var whenError:Signal = new Signal();
 		public var whenReady:Signal = new Signal();
@@ -153,10 +154,14 @@ package engine.networking {
 		}
 
 		public function onPlayerRegister(m:Message):void {
-			var player:Player = new Player(m.getInt(0), m.getString(1), m.getBoolean(2));
+			var player:Player = new Player(m.getInt(0), m.getString(1), m.getBoolean(2), m.getBoolean(3));
 
 			if(player.isLocal) {
 				localPlayerID = player.id;
+			}
+
+			if(player.isHost) {
+				hostPlayerID = player.id;
 			}
 		}
 

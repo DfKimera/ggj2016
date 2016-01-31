@@ -1,5 +1,6 @@
 package engine.states {
 
+	import engine.gameplay.Level;
 	import engine.gameplay.MultiplayerController;
 	import engine.gameplay.Terrain;
 	import engine.gameplay.Grid;
@@ -12,28 +13,41 @@ package engine.states {
 	import engine.services.Log;
 	import engine.services.RightClick;
 
+	import org.flixel.FlxBasic;
+
 	import org.flixel.FlxButton;
 	import org.flixel.FlxCamera;
 	import org.flixel.FlxG;
 	import org.flixel.FlxGroup;
 	import org.flixel.FlxObject;
+	import org.flixel.FlxPoint;
 	import org.flixel.FlxRect;
+	import org.flixel.FlxSprite;
 	import org.flixel.FlxU;
 
 	import playerio.Client;
+	import playerio.Message;
 
 	public class RTSMatch extends NetworkedGameState {
 
+		public var level:Level;
 		public var terrain:Terrain;
 		public var grid:Grid;
 
 		public var $units:FlxGroup = new FlxGroup();
 		public var $structures:FlxGroup = new FlxGroup();
+		public var $props:FlxGroup = new FlxGroup();
 		public var $ui:FlxGroup = new FlxGroup();
 
 		public var selection:Selection = new Selection();
 		public var multi:MultiplayerController;
 
+		public var localTownCenter:Structure;
+		public var localAltar:Structure;
+
+		private var uiAnchor:FlxPoint = new FlxPoint(0,0);
+
+		private var cameraHasFocused:Boolean = false;
 		private var cameraSpeed:int = 350;
 		private var cameraDeadzoneOffset:int = 128;
 
@@ -41,22 +55,11 @@ package engine.states {
 			super.create();
 
 			FlxG.debug = true;
-			FlxG.visualDebug = false;
+			FlxG.visualDebug = true;
 
 			Audio.setup();
 
-			terrain = new Terrain();
-			grid = new Grid(terrain);
 			multi = new MultiplayerController(this, net);
-
-			setupUI();
-			setupCameraMovement();
-
-			add(terrain);
-			add($units);
-			add($structures);
-			add(grid);
-			add($ui);
 		}
 
 		public override function networkReady(client:Client):void {
@@ -73,6 +76,26 @@ package engine.states {
 
 			net.addMessageHandler(MessageTypes.SV_CHAT_MESSAGE, multi.onChatMessage);
 			net.addMessageHandler(MessageTypes.SV_UNIT_CREATE, multi.onUnitCreate);
+			net.addMessageHandler(MessageTypes.SV_STRUCTURE_CREATE, multi.onStructureCreate);
+			net.addMessageHandler(MessageTypes.SV_GAME_BEGIN, onGameBegin);
+
+			net.sendMessage(MessageTypes.CL_READY);
+		}
+
+		public function onGameBegin(m:Message):void {
+			level = new Level(this);
+			terrain = level.terrain;
+			grid = level.grid;
+
+			setupUI();
+			setupCameraMovement();
+
+			add(terrain);
+			add($props);
+			add($structures);
+			add($units);
+			add(grid);
+			add($ui);
 		}
 
 		public function onKicked(type:String, reason:String):void {
@@ -82,15 +105,22 @@ package engine.states {
 
 		public function setupUI():void {
 
-			var spawnBtn:FlxButton = new FlxButton(15, 15, "Spawn unit", function ():void {
-				var x:Number = FlxU.getRandom([50, 120, 180, 240]) as Number;
-				var y:Number = FlxU.getRandom([50, 120, 180, 240]) as Number;
+			var spawnBtn:FlxButton = new FlxButton(50, 718, "Spawn unit", createUnit);
 
-				multi.sendUnitSpawn("peasant", x, y);
-			});
+			addUI(spawnBtn);
 
-			$ui.add(spawnBtn);
+		}
 
+		public function createUnit():void {
+			var x:Number = localTownCenter.getMidpoint().x;
+			var y:Number = localTownCenter.getMidpoint().y + localTownCenter.height;
+
+			multi.sendUnitSpawn("peasant", x, y);
+		}
+
+		public function addUI(element:FlxObject):void {
+			element.scrollFactor = uiAnchor;
+			$ui.add(element);
 		}
 
 		public function setupCameraMovement():void {
@@ -121,13 +151,13 @@ package engine.states {
 
 			if (FlxG.keys.D || FlxG.keys.RIGHT /*|| FlxG.mouse.screenX > FlxG.width - cameraDeadzoneOffset*/) {
 				FlxG.camera.scroll.x += FlxG.elapsed * cameraSpeed;
-			} else if (FlxG.keys.A || FlxG.keys.LEFT || FlxG.mouse.screenX < cameraDeadzoneOffset) {
+			} else if (FlxG.keys.A || FlxG.keys.LEFT /*|| FlxG.mouse.screenX < cameraDeadzoneOffset*/) {
 				FlxG.camera.scroll.x -= FlxG.elapsed * cameraSpeed;
 			}
 
 			if (FlxG.keys.S || FlxG.keys.DOWN /*|| FlxG.mouse.screenY > FlxG.height - cameraDeadzoneOffset*/) {
 				FlxG.camera.scroll.y += FlxG.elapsed * cameraSpeed;
-			} else if (FlxG.keys.W|| FlxG.keys.UP || FlxG.mouse.screenY < cameraDeadzoneOffset) {
+			} else if (FlxG.keys.W|| FlxG.keys.UP /*|| FlxG.mouse.screenY < cameraDeadzoneOffset*/) {
 				FlxG.camera.scroll.y -= FlxG.elapsed * cameraSpeed;
 			}
 		}
@@ -153,7 +183,33 @@ package engine.states {
 		}
 
 		public function spawnUnit(entityID:int, ownerID:int, type:String, x:Number, y:Number):void {
+			Log.write("[server] Spawning unit: ", entityID, ownerID, type, x, y);
 			$units.add(new Unit(entityID, ownerID, type, x, y, this));
+		}
+
+		public function spawnStructure(entityID:int, ownerID:int, type:String, x:Number, y:Number):void {
+			Log.write("[server] Spawning structure: ", entityID, ownerID, type, x, y);
+
+			var structure:Structure = new Structure(entityID, ownerID, type, x, y, this);
+
+			$structures.add(structure);
+
+			if(type == "structure_town_center" && ownerID == net.localPlayerID) {
+				localTownCenter = structure;
+
+				if(!cameraHasFocused) {
+					trace("[local] Got player's town center! Focusing camera...");
+					FlxG.camera.focusOn(new FlxPoint(x, y));
+					cameraHasFocused = true;
+				}
+
+			} else if(type == "structure_altar" && ownerID == net.localPlayerID) {
+				localAltar = structure;
+			}
+		}
+
+		public function spawnProp(prop:FlxSprite):void {
+			$props.add(prop);
 		}
 
 	}

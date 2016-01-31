@@ -43,6 +43,9 @@ package engine.states {
 		public override function create():void {
 			super.create();
 
+			FlxG.debug = true;
+			FlxG.visualDebug = false;
+
 			add(lobbyLbl);
 			add(chatText);
 			add(chatInput);
