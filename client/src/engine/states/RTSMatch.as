@@ -41,7 +41,7 @@ package engine.states {
 			super.create();
 
 			FlxG.debug = true;
-			FlxG.visualDebug = true;
+			FlxG.visualDebug = false;
 
 			Audio.setup();
 

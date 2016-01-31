@@ -10,7 +10,7 @@ package engine.gameplay {
 		public function Grid(terrain:Terrain) {
 			super();
 
-			loadMap(new Assets.MAP_SAMPLE_COLLISION, Assets.TILES_COLLISION, 32, 32, 0, 0, 1, 1);
+			loadMap(new Assets.MAP_SAMPLE_COLLISION, Assets.TILES_COLLISION, 32, 32, 0, 0, 2, 1);
 		}
 
 

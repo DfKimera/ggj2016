@@ -29,7 +29,7 @@ package engine.services {
 		 * TODO: investigate bug where clicking the "spawn unit" does not spawn on both clients
 		 * TODO: resourcing system, with yield rates per structure, and the structures require workers working (should
 		 * have same functionality as unit-attack-unit, but unit-harvest-structure
-		 * TODO: disable collision when unit is mid-path, to reduce potential for desync
+		 * [OKK, CHECK] TODO: disable collision when unit is mid-path, to reduce potential for desync
 		 * TODO: block from selection the units that are not owned by you
 		 * TODO: player base structure, is the waypoint to spawn new units
 		 * TODO: predefined spots in the server for player bases

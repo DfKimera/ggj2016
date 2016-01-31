@@ -190,6 +190,13 @@ package engine.gameplay {
 		}
 
 		private function taskMove():void {
+
+			if(currentAction == ACTION_MOVING) {
+				solid = false;
+			} else {
+				solid = true;
+			}
+
 			if(pathSpeed == 0 || path.nodes.length <= 0) {
 				debug("moving", "arrived at destination");
 				currentTask = TASK_IDLE;
@@ -214,6 +221,7 @@ package engine.gameplay {
 
 			if(distance <= stats.attackDistance) {
 				currentAction = ACTION_ATTACKING; // TODO: this should be controlled by the chain end; swap onDamage with onAttack
+				solid = true;
 
 				if(attackCooldown <= 0) {
 					debug("combat", "hitting ", currentTarget, " with ", stats.attackDamage);
@@ -226,6 +234,7 @@ package engine.gameplay {
 			} else {
 				attackCooldown = 1000 / stats.attackRate;
 				currentAction = ACTION_MOVING;
+				solid = false;
 
 
 				if(huntCooldown <= 0) {
@@ -254,6 +263,7 @@ package engine.gameplay {
 
 		private function taskIdle():void {
 			currentAction = ACTION_STANDING;
+			solid = true;
 		}
 
 		public override function draw():void {
