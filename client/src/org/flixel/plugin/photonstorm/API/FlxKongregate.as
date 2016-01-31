@@ -122,7 +122,7 @@ package org.flixel.plugin.photonstorm.API
 		
 		private static function apiLoadError(error:IOError):void
 		{
-			trace("Error loading Kongregate API", error);
+			Log.write("Error loading Kongregate API", error);
 		}
 		
 		/**

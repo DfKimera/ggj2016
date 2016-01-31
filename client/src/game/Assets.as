@@ -1,4 +1,6 @@
 package game {
+	import engine.services.Log;
+
 	public class Assets {
 
 		[Embed(source="../../assets/grass.png")]
@@ -29,7 +31,7 @@ package game {
 			var asset:Class = Assets["UNIT_" + type.replace('/', '_').toUpperCase()];
 
 			if(!asset) {
-				trace("[assets.WARNING] could not find unit sprites for type ", type, ", using generic");
+				Log.write("[assets.WARNING] could not find unit sprites for type ", type, ", using generic");
 				return UNIT_SAMPLE;
 			}
 

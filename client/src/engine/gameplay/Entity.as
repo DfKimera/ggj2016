@@ -2,6 +2,7 @@ package engine.gameplay {
 
 	import engine.interfaces.Selectable;
 	import engine.interfaces.Targetable;
+	import engine.services.Log;
 
 	import engine.states.RTSMatch;
 
@@ -33,7 +34,7 @@ package engine.gameplay {
 		protected function debug(namespace:String, ... args):void {
 			args.unshift("[" + namespace + "] ");
 			args.unshift(this);
-			trace.apply(this, args);
+			Log.write.apply(this, args);
 		}
 
 		public function isLocal():Boolean {

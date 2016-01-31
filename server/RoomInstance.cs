@@ -8,7 +8,7 @@ using System.Globalization;
 
 namespace GGJ2016 {
 
-	[RoomType("GlobalRoom")]
+	[RoomType("RTSMatch")]
 	public class RoomInstance : Game<Player> {
 
 		public const int STATUS_LOBBY = 1;

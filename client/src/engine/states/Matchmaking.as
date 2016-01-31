@@ -1,6 +1,7 @@
 package engine.states {
 
 	import engine.networking.NetworkedGameState;
+	import engine.services.Log;
 	import engine.ui.UITextInput;
 
 	import game.Config;
@@ -85,7 +86,7 @@ package engine.states {
 
 		public function renderRoomList(rooms:Array):void {
 
-			trace("[matchmaking] List refreshed, ", rooms.length, " rooms available");
+			Log.write("[matchmaking] List refreshed, ", rooms.length, " rooms available");
 
 			$rooms.clear();
 
@@ -103,7 +104,7 @@ package engine.states {
 		}
 
 		public function onRoomClick(roomID:String):void {
-			trace("[matchmaking] Joining room: ", roomID);
+			Log.write("[matchmaking] Joining room: ", roomID);
 			net.joinRoom(roomID);
 		}
 

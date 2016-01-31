@@ -163,7 +163,7 @@ package org.flixel.plugin.photonstorm
 			{
 				if (FlxG.keys.justReleased(hotkey))
 				{
-					trace("key pressed");
+					Log.write("key pressed");
 					grab();
 				}
 			}

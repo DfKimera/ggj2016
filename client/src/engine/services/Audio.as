@@ -23,7 +23,7 @@ package engine.services {
 		}
 
 		public static function playInLocalArea(sound:FlxSound, source:FlxObject, radius:int = 1024):void {
-			trace("[audio] Play: ", sound, source, radius);
+			Log.write("[audio] Play: ", sound, source, radius);
 			sound.proximity(FlxG.camera.scroll.x + (FlxG.width / 2), FlxG.camera.scroll.y + (FlxG.height / 2), source, radius).play(true);
 		}
 

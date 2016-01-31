@@ -1,5 +1,6 @@
 package engine.networking {
 	import engine.gameplay.Player;
+	import engine.services.Log;
 
 	import flash.utils.setTimeout;
 
@@ -15,15 +16,15 @@ package engine.networking {
 		public override function create():void {
 			super.create();
 
-			trace("[networking] Registering networking service...");
+			Log.write("[networking] Registering networking service...");
 
 			net = Networking.getInstance();
 			net.whenConnected.add(this.networkReady);
 
-			trace("[networking] Waiting for ready signal");
+			Log.write("[networking] Waiting for ready signal");
 
 			if(net.isConnected) {
-				trace("[networking] Service was previously initialized, dispatching ready signal");
+				Log.write("[networking] Service was previously initialized, dispatching ready signal");
 				setTimeout(networkReady, 0, net.client);
 			}
 		}

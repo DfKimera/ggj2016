@@ -106,7 +106,7 @@ package org.flixel.plugin.photonstorm.FX
 		{
 			if (step < 10)
 			{
-				//trace(step, tpos1, tpos2, tpos3, tpos4, pos1, pos2, pos3, pos4, index);
+				//Log.write(step, tpos1, tpos2, tpos3, tpos4, pos1, pos2, pos3, pos4, index);
 				step++;
 			}
 			

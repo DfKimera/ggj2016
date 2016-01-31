@@ -1,4 +1,6 @@
 package engine.gameplay {
+	import engine.services.Log;
+
 	public class Player {
 
 		protected static var _playersByID:Array = [];
@@ -16,12 +18,12 @@ package engine.gameplay {
 		}
 
 		public static function register(player:Player):void {
-			trace("[players] Registered player: ", player.id, player.nickname);
+			Log.write("[players] Registered player: ", player.id, player.nickname);
 			_playersByID[player.id] = player;
 		}
 
 		public static function unregister(id:int):void {
-			trace("[players] Unregistered player: ", id);
+			Log.write("[players] Unregistered player: ", id);
 			_playersByID[id] = null;
 		}
 
@@ -31,7 +33,7 @@ package engine.gameplay {
 
 		public static function getNames():Array {
 
-			trace("[players] Get names: ", _playersByID);
+			Log.write("[players] Get names: ", _playersByID);
 
 			var names:Array = [];
 

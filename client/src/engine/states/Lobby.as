@@ -3,6 +3,7 @@ package engine.states {
 	import engine.gameplay.Player;
 	import engine.networking.MessageTypes;
 	import engine.networking.NetworkedGameState;
+	import engine.services.Log;
 	import engine.ui.UITextInput;
 
 	import game.Config;
@@ -82,14 +83,14 @@ package engine.states {
 		}
 
 		public function onKicked(type:String, reason:String):void {
-			trace("[matchmaking] Kicked: ", type, reason);
+			Log.write("[matchmaking] Kicked: ", type, reason);
 			FlxG.switchState(new Matchmaking);
 		}
 
 		public function printChat(timestamp:String, author:String, message:String):void {
 			var text:String = "\n" + timestamp + " <" + author + "> " + message;
 
-			trace(text);
+			Log.write(text);
 
 			if(chatText) chatText.text += text;
 		}
@@ -100,7 +101,7 @@ package engine.states {
 		}
 
 		public function onGameStart(m:Message):void {
-			trace("[matchmaking] Game is starting! localPlayerID: ", net.localPlayerID, "; players: ", Player.getNames().join(", "));
+			Log.write("[matchmaking] Game is starting! localPlayerID: ", net.localPlayerID, "; players: ", Player.getNames().join(", "));
 
 			FlxG.switchState(new RTSMatch);
 		}

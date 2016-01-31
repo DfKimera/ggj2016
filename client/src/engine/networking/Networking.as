@@ -1,6 +1,7 @@
 package engine.networking {
 
 	import engine.gameplay.Player;
+	import engine.services.Log;
 
 	import flash.events.EventDispatcher;
 
@@ -41,7 +42,7 @@ package engine.networking {
 		private static var instance:Networking;
 
 		public function Networking() {
-			trace("[playerio] Connecting to server, gameID=", Config.GAME_ID);
+			Log.write("[playerio] Connecting to server, gameID=", Config.GAME_ID);
 			PlayerIO.connect(
 					Bootstrap.instance.stage,
 					Config.GAME_ID,
@@ -67,14 +68,14 @@ package engine.networking {
 				multi.developmentServer = Config.DEVELOPER_IP;
 			}
 
-			trace("[playerio] Connected! userID=", client.connectUserId, (Config.DEVELOPER_MODE) ? "developerMode=yes, host=" + Config.DEVELOPER_IP : "developerMode=no");
+			Log.write("[playerio] Connected! userID=", client.connectUserId, (Config.DEVELOPER_MODE) ? "developerMode=yes, host=" + Config.DEVELOPER_IP : "developerMode=no");
 
 			this.isConnected = true;
 			this.whenConnected.dispatch(client);
 		}
 
 		private function onError(error:PlayerIOError):void {
-			trace("[playerio.ERROR] ", error);
+			Log.write("[playerio.ERROR] ", error);
 			whenError.dispatch(error);
 		}
 
@@ -83,20 +84,20 @@ package engine.networking {
 		}
 
 		public function getRooms(closure:Function):void {
-			trace("[playerio] Getting room list...");
-			multi.listRooms("GlobalRoom", "", 64, 0, closure, onError);
+			Log.write("[playerio] Getting room list...");
+			multi.listRooms("RTSMatch", "", 64, 0, closure, onError);
 		}
 
 		public function createRoom(roomID:String):void {
-			trace("[playerio] Creating room: ", roomID);
-			multi.createJoinRoom(roomID, "GlobalRoom", true, null, {nickname: this.nickname}, onRoomCreated, onError);
+			Log.write("[playerio] Creating room: ", roomID);
+			multi.createJoinRoom(roomID, "RTSMatch", true, null, {nickname: this.nickname}, onRoomCreated, onError);
 		}
 
 		private function onRoomCreated(conn:Connection):void {
 			this.isInRoom = true;
 			this.conn = conn;
 
-			trace("[playerio] Room created: ", conn.roomId);
+			Log.write("[playerio] Room created: ", conn.roomId);
 
 			setupListeners();
 
@@ -105,7 +106,7 @@ package engine.networking {
 		}
 
 		public function joinRoom(roomID:String):void {
-			trace("[playerio] Joining room: ", roomID);
+			Log.write("[playerio] Joining room: ", roomID);
 			multi.joinRoom(roomID, {nickname: this.nickname}, onRoomJoined, onError);
 		}
 
@@ -113,7 +114,7 @@ package engine.networking {
 			this.isInRoom = true;
 			this.conn = conn;
 
-			trace("[playerio] Room joined: ", conn.roomId);
+			Log.write("[playerio] Room joined: ", conn.roomId);
 
 			setupListeners();
 
@@ -146,7 +147,7 @@ package engine.networking {
 			isInRoom = false;
 			isPlaying = false;
 
-			trace("[playerio] Disconnected!");
+			Log.write("[playerio] Disconnected!");
 
 			this.whenDisconnected.dispatch();
 		}

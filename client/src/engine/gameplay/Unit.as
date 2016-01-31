@@ -166,8 +166,6 @@ package engine.gameplay {
 		}
 
 		private function handleTasks():void {
-			if(!isLocal()) return;
-
 			switch(currentTask) {
 				case TASK_MOVE:
 					taskMove();
@@ -204,6 +202,8 @@ package engine.gameplay {
 		}
 
 		private function taskAttack():void {
+			if(!isLocal()) return;
+
 			var distance:Number = FlxU.getDistance(this.getMidpoint(), this.currentTarget.getMidpoint());
 
 			if(!currentTarget.isAlive()) {
@@ -290,7 +290,7 @@ package engine.gameplay {
 					var moveTarget:FlxPoint = new FlxPoint(parameters[0], parameters[1]);
 
 					debug("command", "move towards", parameters[0], parameters[1]);
-					if(!moveTarget) { trace("command.ERROR", "Invalid target for move command"); }
+					if(!moveTarget) { debug("command.ERROR", "Invalid target for move command"); }
 
 					var path:FlxPath = grid.findPath(this.getMidpoint(), moveTarget, false, false);
 

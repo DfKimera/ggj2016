@@ -311,7 +311,7 @@ package org.flixel.plugin.photonstorm
 		
 		public function debug():void
 		{
-			trace("FlxBar - Min:", min, "Max:", max, "Range:", range, "pct:", pct, "pxp:", pxPerPercent, "Value:", value);
+			Log.write("FlxBar - Min:", min, "Max:", max, "Range:", range, "pct:", pct, "pxp:", pxPerPercent, "Value:", value);
 		}
 		
 		public function get stats():Object

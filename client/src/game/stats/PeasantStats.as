@@ -1,10 +1,11 @@
 package game.stats {
 	import engine.gameplay.UnitStats;
+	import engine.services.Log;
 
 	public class PeasantStats extends UnitStats {
 		public function PeasantStats() {
 
-			trace("[stats] Loaded stats for Peasant");
+			Log.write("[stats] Loaded stats for Peasant");
 
 			name = "Peasant";
 

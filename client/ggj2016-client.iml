@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="Flex" version="4">
-  <component name="FlexBuildConfigurationManager" active="client-as3">
+  <component name="FlexBuildConfigurationManager" active="client-as3-development">
     <configurations>
-      <configuration name="client-as3" pure-as="true" main-class="Bootstrap" output-file="game.swf" output-folder="$MODULE_DIR$/out/production/client-as3" use-html-wrapper="true" wrapper-template-path="$MODULE_DIR$/html-template">
+      <configuration name="client-as3-development" pure-as="true" main-class="Bootstrap" output-file="game.swf" output-folder="$MODULE_DIR$/out/development" wrapper-template-path="$MODULE_DIR$/html-template">
         <dependencies target-player="20.0">
           <entries>
             <entry library-name="flixel-v2.56" library-level="project">
@@ -17,7 +17,34 @@
           </entries>
           <sdk name="apache-flex-4.15.0" />
         </dependencies>
-        <compiler-options />
+        <compiler-options>
+          <option name="additionalOptions" value="-define+=CONFIG::developer,true -define+=CONFIG::release,false" />
+        </compiler-options>
+        <packaging-air-desktop />
+        <packaging-android />
+        <packaging-ios />
+      </configuration>
+      <configuration name="client-as3-release" pure-as="true" main-class="Bootstrap" output-file="game_release.swf" output-folder="$MODULE_DIR$/out/release" use-html-wrapper="true" wrapper-template-path="$MODULE_DIR$/html-template">
+        <dependencies target-player="20.0">
+          <entries>
+            <entry library-name="flixel-v2.56" library-level="project">
+              <dependency linkage="Merged" />
+            </entry>
+            <entry library-name="PlayerIOClient" library-level="project">
+              <dependency linkage="Merged" />
+            </entry>
+            <entry library-name="as3-signals-v0.8" library-level="project">
+              <dependency linkage="Merged" />
+            </entry>
+          </entries>
+          <sdk name="apache-flex-4.15.0" />
+        </dependencies>
+        <compiler-options>
+          <map>
+            <entry key="compiler.debug.swf" value="true" />
+          </map>
+          <option name="additionalOptions" value="-define+=CONFIG::developer,false -define+=CONFIG::release,true" />
+        </compiler-options>
         <packaging-air-desktop />
         <packaging-android />
         <packaging-ios />

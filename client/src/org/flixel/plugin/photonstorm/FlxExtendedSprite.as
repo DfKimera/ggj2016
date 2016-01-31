@@ -502,7 +502,7 @@ package org.flixel.plugin.photonstorm
 						{
 							if (velocity.x < toleranceX)
 							{
-								//trace("(left) velocity.x", velocity.x, "stopped via tolerance break", toleranceX);
+								//Log.write("(left) velocity.x", velocity.x, "stopped via tolerance break", toleranceX);
 								velocity.x = 0;
 							}
 						}
@@ -524,7 +524,7 @@ package org.flixel.plugin.photonstorm
 						{
 							if (velocity.x > -toleranceX)
 							{
-								//trace("(right) velocity.x", velocity.x, "stopped via tolerance break", toleranceX);
+								//Log.write("(right) velocity.x", velocity.x, "stopped via tolerance break", toleranceX);
 								velocity.x = 0;
 							}
 						}
@@ -551,7 +551,7 @@ package org.flixel.plugin.photonstorm
 						{
 							if (velocity.y < toleranceY)
 							{
-								//trace("(down) velocity.y", velocity.y, "stopped via tolerance break", toleranceY);
+								//Log.write("(down) velocity.y", velocity.y, "stopped via tolerance break", toleranceY);
 								velocity.y = 0;
 							}
 						}
@@ -573,7 +573,7 @@ package org.flixel.plugin.photonstorm
 						{
 							if (velocity.y > -toleranceY)
 							{
-								//trace("(down) velocity.y", velocity.y, "stopped via tolerance break", toleranceY);
+								//Log.write("(down) velocity.y", velocity.y, "stopped via tolerance break", toleranceY);
 								velocity.y = 0;
 							}
 						}

@@ -100,7 +100,7 @@ package engine.ui {
 			active = true;
 			textNormal.visible = textHighlight.visible = true;
 
-			if(onChangeCallback) onChangeCallback(_input.text);
+			if(onChangeCallback is Function) onChangeCallback(_input.text);
 		}
 
 		protected function checkIfEnterPressed(ev:KeyboardEvent):void {

@@ -9,6 +9,7 @@ package engine.states {
 	import engine.networking.MessageTypes;
 	import engine.networking.NetworkedGameState;
 	import engine.services.Audio;
+	import engine.services.Log;
 	import engine.services.RightClick;
 
 	import org.flixel.FlxButton;
@@ -75,7 +76,7 @@ package engine.states {
 		}
 
 		public function onKicked(type:String, reason:String):void {
-			trace("[matchmaking] Kicked: ", type, reason);
+			Log.write("[matchmaking] Kicked: ", type, reason);
 			FlxG.switchState(new Matchmaking);
 		}
 
