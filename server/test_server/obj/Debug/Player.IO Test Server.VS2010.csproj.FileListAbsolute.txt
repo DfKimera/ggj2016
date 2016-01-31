@@ -1,0 +1,10 @@
+Z:\ggj2016\server\test_server\bin\Debug\Player.IO Development Server.exe
+Z:\ggj2016\server\test_server\bin\Debug\ggj2016.dll
+Z:\ggj2016\server\test_server\bin\Debug\Player.IO GameLibrary.dll
+Z:\ggj2016\server\test_server\bin\Debug\ggj2016.pdb
+Z:\ggj2016\server\test_server\bin\Debug\Player.IO GameLibrary.xml
+Z:\ggj2016\server\test_server\obj\Debug\Player.IO Test Server.VS2010.csprojResolveAssemblyReference.cache
+Z:\ggj2016\server\test_server\obj\Debug\Test Server.exe
+Z:\ggj2016\server\test_server\obj\Debug\Test Server.pdb
+Z:\ggj2016\server\test_server\bin\Debug\Test Server.exe
+Z:\ggj2016\server\test_server\bin\Debug\Test Server.pdb

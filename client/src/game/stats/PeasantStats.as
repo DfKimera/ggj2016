@@ -1,5 +1,5 @@
 package game.stats {
-	import engine.UnitStats;
+	import engine.gameplay.UnitStats;
 
 	public class PeasantStats extends UnitStats {
 		public function PeasantStats() {

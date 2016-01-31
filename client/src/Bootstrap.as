@@ -1,6 +1,6 @@
 package {
 
-	import engine.RightClick;
+	import engine.services.RightClick;
 
 	import flash.display.Sprite;
 	import flash.events.MouseEvent;

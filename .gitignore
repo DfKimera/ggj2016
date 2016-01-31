@@ -12,3 +12,5 @@ vendor/
 # composer.lock
 
 # Created by .ignore support plugin (hsz.mobi)
+server/obj
+server/test_server/obj

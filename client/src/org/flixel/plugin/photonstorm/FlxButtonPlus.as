@@ -15,7 +15,9 @@
 package org.flixel.plugin.photonstorm
 {
 	import flash.events.MouseEvent;
-	
+
+	import game.Config;
+
 	import org.flixel.*;
 	
 	/**
@@ -91,12 +93,12 @@ package org.flixel.plugin.photonstorm
 		/**
 		 * The color gradient of the button in its in-active (not hovered over) state
 		 */
-		public var offColor:Array = [0xff008000, 0xff00FF00];
+		public var offColor:Array = Config.COLOR_BTN_UP;
 		
 		/**
 		 * The color gradient of the button in its hovered state
 		 */
-		public var onColor:Array = [0xff800000, 0xffff0000];
+		public var onColor:Array = Config.COLOR_BTN_DOWN;
 		
 		private var _x:int;
 		private var _y:int;

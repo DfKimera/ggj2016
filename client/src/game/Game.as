@@ -1,7 +1,9 @@
 package game {
 
-	import engine.RTSMatch;
-	import engine.RightClick;
+	import engine.states.Matchmaking;
+	import engine.services.RightClick;
+
+	import flash.events.Event;
 
 	import org.flixel.FlxG;
 
@@ -11,9 +13,16 @@ package game {
 	public class Game extends FlxGame {
 
 		public function Game() {
-			super(1024, 768, RTSMatch, 1, 60, 30, true);
+			super(1024, 768, Matchmaking, 1, 60, 30, true);
 
 			setupEnginePlugins();
+		}
+
+		protected override function create(ev:Event):void {
+			super.create(ev);
+
+			stage.removeEventListener(Event.DEACTIVATE, onFocusLost);
+			stage.removeEventListener(Event.ACTIVATE, onFocus);
 		}
 
 		public function setupEnginePlugins():void {

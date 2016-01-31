@@ -1,0 +1,6 @@
+Z:\ggj2016\server\bin\Debug\ggj2016.dll
+Z:\ggj2016\server\bin\Debug\ggj2016.pdb
+Z:\ggj2016\server\bin\Debug\Player.IO GameLibrary.dll
+Z:\ggj2016\server\bin\Debug\Player.IO GameLibrary.xml
+Z:\ggj2016\server\obj\Debug\ggj2016.dll
+Z:\ggj2016\server\obj\Debug\ggj2016.pdb
