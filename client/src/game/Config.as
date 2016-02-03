@@ -10,6 +10,7 @@ package game {
 		public static const DEVELOPER_IP:String = "10.0.0.164:8184";
 
 		public static const LOG_SHOW:Boolean = true;
+		public static const MESSAGE_TYPE_COMPACT:Boolean = false;
 
 		public static const COLOR_BTN_UP:Array = [0xff333333, 0xff666666];
 		public static const COLOR_BTN_DOWN:Array = [0xff444444, 0xff777777];
@@ -29,6 +30,7 @@ package game {
 		public static const DEVELOPER_IP:String = "10.0.0.164:8184";
 
 		public static const LOG_SHOW:Boolean = true;
+		public static const MESSAGE_TYPE_COMPACT:Boolean = false;
 
 		public static const COLOR_BTN_UP:Array = [0xff333333, 0xff666666];
 		public static const COLOR_BTN_DOWN:Array = [0xff444444, 0xff777777];

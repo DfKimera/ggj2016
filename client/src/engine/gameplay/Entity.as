@@ -6,6 +6,8 @@ package engine.gameplay {
 
 	import engine.states.RTSMatch;
 
+	import org.flixel.FlxG;
+
 	import org.flixel.plugin.photonstorm.FlxExtendedSprite;
 
 	public class Entity extends FlxExtendedSprite implements Targetable, Selectable {
@@ -41,7 +43,7 @@ package engine.gameplay {
 			return (owner == match.getLocalPlayerID());
 		}
 
-		public function onCommand(command:int, parameters:Array):void {
+		public function onLocalCommand(command:int, parameters:Array):void {
 
 		}
 
@@ -53,24 +55,22 @@ package engine.gameplay {
 			return alive;
 		}
 
-		public function onAttack(target:Entity, damage:int):void {
+		public function onDamage(target:Entity, damage:int):void {
 			if(!alive) return;
 
 			debug("combat", " inflicted ", damage, " damage to ", target);
 
-			target.onDamage(this, damage);
+			target.onDamaged(this, damage);
 		}
 
-		public function onDamage(attacker:Entity, damage:int):void {
+		public function onDamaged(attacker:Entity, damage:int):void {
 			if(!alive) return;
 
 			debug("combat", " took ", damage, " damage from ", attacker);
 
 			health -= damage;
 
-			if(health <= 0) {
-				onDeath();
-			}
+			if(health <= 0) onDeath();
 		}
 
 		public function onDeath():void {

@@ -45,14 +45,14 @@ package engine.networking {
 		public function Networking() {
 			Log.write("[playerio] Connecting to server, gameID=", Config.GAME_ID);
 			PlayerIO.connect(
-					Bootstrap.instance.stage,
-					Config.GAME_ID,
-					Config.CONN_ID,
-					String("User_" + FlxG.random() * 100000),
-					"",
-					"",
-					onConnect,
-					onError
+				Bootstrap.instance.stage,
+				Config.GAME_ID,
+				Config.CONN_ID,
+				String("User_" + FlxG.random() * 100000),
+				"",
+				"",
+				onConnect,
+				onError
 			);
 		}
 

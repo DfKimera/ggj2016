@@ -1,7 +1,5 @@
 package engine.gameplay {
 
-
-	import engine.interfaces.Selectable;
 	import engine.interfaces.Targetable;
 	import engine.services.Audio;
 	import engine.states.RTSMatch;
@@ -22,17 +20,19 @@ package engine.gameplay {
 	public class Unit extends Entity {
 
 		public static const TASK_IDLE:int = 0;
-		public static const TASK_MOVE:int = 1;
-		public static const TASK_ATTACK:int = 2;
-		public static const TASK_HARVEST:int = 3;
+		public static const TASK_NETWORKED:int = 1;
+		public static const TASK_WALK:int = 2;
+		public static const TASK_ATTACK:int = 3;
+		public static const TASK_GATHER:int = 4;
 
-		public static const ACTION_STANDING:int = 1;
-		public static const ACTION_MOVING:int = 2;
-		public static const ACTION_WORKING:int = 3;
-		public static const ACTION_ATTACKING:int = 4;
+		public static const ACTION_STOP:int = 1;
+		public static const ACTION_FOLLOW_PATH:int = 2;
+		public static const ACTION_HIT:int = 3;
+		public static const ACTION_GATHER:int = 4;
 
-		public static const COMMAND_MOVE:int = 1;
+		public static const COMMAND_WALK:int = 1;
 		public static const COMMAND_ATTACK:int = 2;
+		public static const COMMAND_GATHER:int = 2;
 		public static const COMMAND_STOP:int = 3;
 
 		public var type:String;
@@ -48,9 +48,8 @@ package engine.gameplay {
 		public var huntCooldown:Number = 0;
 
 		public var currentTask:int = TASK_IDLE;
-		public var currentAction:int = ACTION_STANDING;
+		public var currentAction:int = ACTION_STOP;
 		public var currentTarget:Targetable = null;
-
 
 		private var selection:Selection;
 
@@ -72,12 +71,14 @@ package engine.gameplay {
 			setupCollision();
 			setupAnimations();
 
+			currentTask = (isLocal()) ? TASK_IDLE : TASK_NETWORKED;
+
 		}
 
 		public function setupMouseClick():void {
 			this.clickable = true;
 			this.enableMouseClicks(true, false);
-			this.mousePressedCallback = handleUnitClick;
+			this.mousePressedCallback = onUnitClick;
 		}
 
 		public function setupAnimations():void {
@@ -106,39 +107,8 @@ package engine.gameplay {
 			height = 30;
 		}
 
-		public function walkOverPath(path:FlxPath):void {
-			if(!path) return;
-
-			currentTask = TASK_MOVE;
-
-			match.multi.sendUnitFollow(this, path);
-		}
-
-		public function follow(path:FlxPath):void {
-			if(this.path) {
-				debug("moving", "cancelling existing path");
-				this.stopFollowingPath(true);
-			}
-
-			if(!path) return;
-
-			debug("moving", " following path ", path.nodes, stats.speed);
-
-			currentAction = ACTION_MOVING;
-
-			this.followPath(path, stats.speed, PATH_FORWARD, false);
-		}
-
-		public function attack(target:Targetable):void {
-
-			if(this.path) {
-				this.stopFollowingPath(true);
-			}
-
-			currentTask = TASK_ATTACK;
-			currentTarget = target;
-
-			debug("combat", "going to attack", target);
+		public override function toString():String {
+			return "<Unit:" + type + ":" + owner + "; id=" + id + "; pos=" + x + "," + y + ">";
 		}
 
 		public override function update():void {
@@ -151,33 +121,26 @@ package engine.gameplay {
 
 			resolveDirection();
 			handleAnimations();
-			handleTasks();
-		}
 
-		private function handleAnimations():void {
-			switch(currentAction) {
-				case ACTION_MOVING:
-					renderAnimation('walk');
-					break;
-				case ACTION_WORKING:
-				case ACTION_STANDING:
-				default:
-					renderAnimation('idle');
-					break;
+			if(isLocal()) {
+				handleLocalTasks();
 			}
 		}
 
-		private function handleTasks():void {
-			switch(currentTask) {
-				case TASK_MOVE:
-					taskMove();
+		// ----------------------------------------------------------------------------------------------------
+		// Frame handlers
+		// ----------------------------------------------------------------------------------------------------
+
+		private function handleAnimations():void {
+			switch(currentAction) {
+				case ACTION_FOLLOW_PATH:
+					renderAnimation('walk');
 					break;
-				case TASK_ATTACK:
-					taskAttack();
-					break;
+				case ACTION_HIT:
+				case ACTION_GATHER:
+				case ACTION_STOP:
 				default:
-				case TASK_IDLE:
-					taskIdle();
+					renderAnimation('idle');
 					break;
 			}
 		}
@@ -191,96 +154,14 @@ package engine.gameplay {
 			bodyDecay--;
 		}
 
-		private function taskMove():void {
-
-			if(currentAction == ACTION_MOVING) {
-				solid = false;
-			} else {
-				solid = true;
-			}
-
-			if(pathSpeed == 0 || path.nodes.length <= 0) {
-				debug("moving", "arrived at destination");
-				currentTask = TASK_IDLE;
-				currentAction = ACTION_STANDING;
-
-				renderAnimation('idle');
-				stopFollowingPath(true);
-			}
-
-		}
-
-		private function taskAttack():void {
-			solid = true;
-
-			if(!isLocal()) return;
-
-			var distance:Number = FlxU.getDistance(this.getMidpoint(), this.currentTarget.getMidpoint());
-
-			if(!currentTarget.isAlive()) {
-				debug("combat", "target ", currentTarget, " is dead, becoming idle");
-				currentTask = TASK_IDLE;
-				return;
-			}
-
-			if(distance <= stats.attackDistance) {
-				currentAction = ACTION_ATTACKING;
-
-				if(attackCooldown <= 0) {
-					debug("combat", "hitting ", currentTarget, " with ", stats.attackDamage);
-					match.multi.sendUnitAttack(this, currentTarget, stats.attackDamage);
-					attackCooldown = 1000 / stats.attackRate;
-				}
-
-				attackCooldown--;
-
-			} else {
-				attackCooldown = 1000 / stats.attackRate;
-				currentAction = ACTION_MOVING;
-				//solid = false;
-
-
-				if(huntCooldown <= 0) {
-					debug("combat", "tracking new route towards ", currentTarget);
-
-					huntCooldown = stats.huntTimeout;
-
-					if(pathSpeed == 0 || (path && path.nodes.length <= 0)) stopFollowingPath(true);
-
-					var path:FlxPath = grid.findPath(this.getMidpoint(), currentTarget.getMidpoint());
-
-					if(!path) {
-						debug("combat", "no path found! will try again next time", currentTarget);
-						return;
-					}
-
-					debug("combat", "new path to target", currentTarget, path);
-
-					match.multi.sendUnitFollow(this, path);
-				}
-
-				huntCooldown--;
-
-			}
-		}
-
-		private function taskIdle():void {
-			currentAction = ACTION_STANDING;
-			solid = true;
-		}
-
-		public override function draw():void {
-			super.draw();
-		}
-
-		public function resolveDirection():int {
+		private function resolveDirection():int {
 			if(velocity.y < 0) return direction = UP;
 			if(velocity.x < 0) return direction = LEFT;
 			if(velocity.x > 0) return direction = RIGHT;
 			return direction = DOWN;
 		}
 
-		public function renderAnimation(anim:String):void {
+		private function renderAnimation(anim:String):void {
 			switch(direction) {
 				case LEFT: return play(anim + "_left");
 				case RIGHT: return play(anim + "_right");
@@ -289,51 +170,203 @@ package engine.gameplay {
 			}
 		}
 
-		public override function onAttack(target:Entity, damage:int):void {
-			super.onAttack(target, damage);
+		// ----------------------------------------------------------------------------------------------------
+		// Local actions
+		// ----------------------------------------------------------------------------------------------------
 
-			currentAction = ACTION_ATTACKING;
-			Audio.playInLocalArea(sfxHit, this);
-		}
-
-		public override function onCommand(command:int, parameters:Array):void {
+		public override function onLocalCommand(command:int, parameters:Array):void {
 
 			switch(command) {
-				case COMMAND_MOVE:
+				case COMMAND_WALK:
 					var moveTarget:FlxPoint = new FlxPoint(parameters[0], parameters[1]);
-
-					debug("command", "move towards", parameters[0], parameters[1]);
-					if(!moveTarget) { debug("command.ERROR", "Invalid target for move command"); }
-
-					var path:FlxPath = grid.findPath(this.getMidpoint(), moveTarget, false, false);
-
-					match.multi.sendUnitFollow(this, path);
+					this.beginWalk(moveTarget);
 
 					break;
 				case COMMAND_ATTACK:
 					var attackTarget:Targetable = parameters[0] as Targetable;
-
-					debug("command", "attack", attackTarget);
-					if(!attackTarget) { debug("command.ERROR", "Invalid attack target"); }
-
-					this.attack(attackTarget);
+					this.beginAttack(attackTarget);
 
 					break;
 			}
 
 		}
 
-		public override function toString():String {
-			return "<Unit:" + type + ":" + owner + "; id=" + id + "; pos=" + x + "," + y + ">";
+		// --------------------
+		// local action initiators
+		// --------------------
+
+		public function beginIdle():void {
+			currentTask = TASK_IDLE;
+
+			match.multi.sendUnitActionStop(this);
 		}
 
-		public static function handleUnitClick(unit:Unit, x:Number, y:Number):void {
+		public function beginWalk(target:FlxPoint):void {
+			debug('local_command', 'begin walk to ', target.x, target.y);
+
+			var path:FlxPath = grid.findPath(this.getMidpoint(), target, false, false);
+
+			if(!path) {
+				debug('local_command', 'no valid path found!');
+				return;
+			}
+
+			currentTask = TASK_WALK;
+
+			match.multi.sendUnitActionFollowPath(this, path);
+		}
+
+		public function beginAttack(target:Targetable):void {
+			if(!target) return;
+
+			debug('local_command', 'begin attacking ', target);
+
+			currentTask = TASK_ATTACK;
+			currentTarget = target;
+		}
+
+		// --------------------
+		// local AI cycle
+		// --------------------
+
+		private function handleLocalTasks():void {
+			switch(currentTask) {
+				case TASK_WALK: taskWalk(); break;
+				case TASK_ATTACK: taskAttack(); break;
+				default: case TASK_IDLE: taskIdle(); break;
+			}
+		}
+
+		// --------------------
+		// local AI task implementations
+		// --------------------
+
+		private function taskWalk():void {
+			if(currentAction != ACTION_FOLLOW_PATH) return;
+
+			if(pathSpeed == 0 || path.nodes.length <= 0) {
+				debug('task.walk', 'arrived at destination, stopping');
+				return beginIdle();
+			}
+		}
+
+		private function taskAttack():void {
+			if(!currentTarget.isAlive()) {
+				debug('task.attack', 'target is dead, going idle now');
+				return beginIdle();
+			}
+
+			var distance:Number = FlxU.getDistance(this.getMidpoint(), currentTarget.getMidpoint());
+
+			if(distance <= stats.attackDistance) return taskAttackHit();
+
+			taskAttackHunt();
+		}
+
+		private function taskAttackHit():void {
+			if(attackCooldown > 0) {
+				attackCooldown--;
+				return;
+			}
+
+			debug('task.attack', 'within hitting range of ', currentTarget, ', hitting with ', stats.attackDamage);
+
+			attackCooldown = stats.attackCooldown;
+
+			match.multi.sendUnitActionHit(this, currentTarget, stats.attackDamage);
+		}
+
+		private function taskAttackHunt():void {
+			if(huntCooldown > 0) {
+				huntCooldown--;
+				return;
+			}
+
+			debug('task.walk', 'not within range, finding path to ', currentTarget);
+
+			huntCooldown = stats.huntCooldown;
+
+			var pathToTarget:FlxPath = grid.findPath(this.getMidpoint(), currentTarget.getMidpoint(), false, false);
+			if(!pathToTarget) return debug('task.walk', 'no path found!');
+
+			debug('task.walk', 'following path to ', currentTarget, pathToTarget);
+
+			match.multi.sendUnitActionFollowPath(this, pathToTarget);
+		}
+
+		private function taskIdle():void {
+
+		}
+
+		// --------------------
+		// Action local handlers
+		// --------------------
+
+		public function actionHit(target:Entity, damage:int):void {
+			solid = true;
+
+			debug('action.hit', 'hitting ', damage, ' with ', damage, ' damage');
+
+			if(!target.isAlive()) {
+				debug('action.hit', 'cannot hit a dead entity: ', target);
+				return;
+			}
+
+			currentAction = ACTION_HIT;
+
+			// TODO: add pos?
+
+			this.onDamage(target, damage);
+			Audio.playInLocalArea(sfxHit, this);
+		}
+
+		public function actionGather(target:Entity):void {
+			solid = true;
+
+			debug('action.gather', 'gathering resources from ', target);
+
+			currentAction = ACTION_GATHER;
+			Audio.playInLocalArea(sfxHit, this);
+		}
+
+		public function actionStop(stopX:int, stopY:int):void {
+			solid = true;
+
+			debug('action.stop', 'stopping @ ', stopX, stopY);
+
+			currentAction = ACTION_STOP;
+
+			stopFollowingPath(true);
+
+			x = stopX;
+			y = stopY;
+		}
+
+		public function actionFollowPath(path:FlxPath):void {
+			solid = false;
+
+			debug('action.follow_path', 'following path: ', path, stats.walkSpeed);
+			// TODO: add startPos?
+
+			currentAction = ACTION_FOLLOW_PATH;
+			followPath(path, stats.walkSpeed);
+
+		}
+
+
+		// ------------------------------------------------------------------------------------------------------------
+		// Static functions
+		// ------------------------------------------------------------------------------------------------------------
+
+		public static function onUnitClick(unit:Unit, x:Number, y:Number):void {
 			if(FlxG.keys.SHIFT) {
 				unit.selection.addUnitToSelection(unit);
+				unit.debug('selection', 'added to selection: ', unit.selection.selectedUnits);
 				return;
 			}
 
 			unit.selection.selectUnit(unit);
+			unit.debug('selection', 'is now selected');
 		}
 	}
 }

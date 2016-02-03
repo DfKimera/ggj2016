@@ -89,7 +89,7 @@ package engine.gameplay {
 			if(hasStructureSelected()) {
 				if(!selectedStructure.alive) return;
 
-				selectedStructure.onCommand(command, parameters);
+				selectedStructure.onLocalCommand(command, parameters);
 
 				return;
 			}
@@ -97,7 +97,7 @@ package engine.gameplay {
 			if(hasUnitSelected()) {
 				for each(var unit:Unit in selectedUnits) {
 					if(!unit.alive) continue;
-					unit.onCommand(command, parameters);
+					unit.onLocalCommand(command, parameters);
 				}
 			}
 		}

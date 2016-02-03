@@ -1,13 +1,15 @@
 package engine.gameplay {
-	import engine.interfaces.Damageable;
+
 	import engine.interfaces.Targetable;
+
 	import engine.networking.MessageTypes;
 	import engine.networking.Networking;
+
 	import engine.services.Log;
+	import engine.services.Utils;
 	import engine.states.RTSMatch;
 
 	import org.flixel.FlxPath;
-	import org.flixel.FlxPoint;
 
 	import playerio.Message;
 
@@ -21,36 +23,26 @@ package engine.gameplay {
 			this.net = net;
 		}
 
-		public function sendUnitFollow(unit:Unit, path:FlxPath):void {
+		public function sendUnitActionFollowPath(unit:Unit, path:FlxPath):void {
 
-			Log.write("[net.local.send] Unit follow: ", unit, path);
+			Log.write("[net.local.send] Unit -> ACTION_FOLLOW_PATH: ", unit, path);
 
-			var nodes:Array = [];
+			var nodeList:String = Utils.serializePath(path);
 
-			if(!path) {
-				Log.write("[net.local.send.ERROR] Can't follow invalid path: ", path);
-				return;
-			}
+			if(!path) return Log.write("[net.local.send.ERROR] Can't follow invalid path: ", path);
+			if(path.nodes.length <= 0) return Log.write("[net.local.send.ERROR] Can't follow empty path: ", path);
 
-			if(path.nodes.length <= 0) {
-				Log.write("[net.local.send.ERROR] Can't follow empty path: ", path);
-				return;
-			}
-
-			for (var i in path.nodes) {
-				if(!path.nodes.hasOwnProperty(i)) continue;
-
-				var node:FlxPoint = path.nodes[i] as FlxPoint;
-				nodes.push(int(node.x) + "," + int(node.y));
-
-			}
-
-			net.sendMessage(MessageTypes.CL_UNIT_FOLLOW, unit.id, nodes.join(";"));
+			net.sendMessage(MessageTypes.CL_UNIT_ACTION_FOLLOW_PATH, unit.id, nodeList);
 		}
 
-		public function sendUnitAttack(unit:Unit, target:Targetable, damage:int):void {
-			Log.write("[net.local.send] Unit attack: ", unit, target, damage);
-			net.sendMessage(MessageTypes.CL_UNIT_ATTACK, unit.id, target.getID(), damage);
+		public function sendUnitActionHit(unit:Unit, target:Targetable, damage:int):void {
+			Log.write("[net.local.send] Unit -> ACTION_HIT: ", unit, target, damage);
+			net.sendMessage(MessageTypes.CL_UNIT_ACTION_HIT, unit.id, target.getID(), damage);
+		}
+
+		public function sendUnitActionStop(unit:Unit):void {
+			Log.write("[net.local.send] Unit -> ACTION_STOP: ", unit);
+			net.sendMessage(MessageTypes.CL_UNIT_ACTION_STOP, unit.id, unit.x, unit.y);
 		}
 
 		public function sendUnitSpawn(type:String, x:Number, y:Number):void {
@@ -73,40 +65,9 @@ package engine.gameplay {
 
 		}
 
-		public function onUnitFollow(m:Message):void {
-			var entityID:int = m.getInt(0);
-			var nodeList:String = m.getString(1);
-
-			var entity:Entity = Entity.getByID(entityID);
-
-			if(!entity) return Log.write("[multiplayer.ERROR] Attempted to execute command on invalid entity: ", entityID);
-			if(!(entity is Unit)) return Log.write("[multiplayer.ERROR] Cannot trigger FOLLOW on a structure", entityID);
-
-			var path:FlxPath = new FlxPath();
-			var nodes:Array = nodeList.split(";");
-
-			for each(var node:String in nodes) {
-				var n:Array = node.split(",");
-				path.add(Number(n[0]), Number(n[1]));
-			}
-
-			(entity as Unit).currentTask = Unit.TASK_MOVE;
-			(entity as Unit).follow(path);
-		}
-
-		public function onUnitAttack(m:Message):void {
-			var entityID:int = m.getInt(0);
-			var targetID:int = m.getInt(1);
-			var damage:int = m.getInt(2);
-
-			var entity:Entity = Entity.getByID(entityID);
-			var target:Entity = Entity.getByID(targetID);
-
-			if(!entity) return Log.write("[multiplayer.ERROR] Attempted to request attack to an invalid entity: ", entityID);
-			if(!target || !(target is Entity)) return Log.write("[multiplayer.ERROR] Attempted to target attack on an invalid entity: ", targetID);
-
-			entity.onAttack(target, damage);
-		}
+		// -------------------------------------------------------------------------------------------------------------
+		// Entity spawn/destroy handlers
+		// -------------------------------------------------------------------------------------------------------------
 
 		public function onUnitCreate(m:Message):void {
 			var entityID:int = m.getInt(0);
@@ -118,33 +79,6 @@ package engine.gameplay {
 			game.spawnUnit(entityID, ownerID, type, x, y);
 		}
 
-		public function onUnitDeath(m:Message):void {
-			var entityID:int = m.getInt(0);
-
-			var entity:Entity = Entity.getByID(entityID);
-
-			if(!entity) return Log.write("[multiplayer.ERROR] Attempted to kill invalid entity: ", entityID);
-
-			entity.onDeath();
-		}
-
-		public function onUnitGather(m:Message):void {
-
-		}
-
-		public function onUnitMove(m:Message):void {
-			var unitID:int = m.getInt(0);
-			var targetX:Number = m.getNumber(1);
-			var targetY:Number = m.getNumber(2);
-
-			var entity:Entity = Entity.getByID(unitID);
-
-			if(!entity) return Log.write("[multiplayer.ERROR] Cannot move invalid entity: ", unitID);
-
-			entity.x = targetX;
-			entity.y = targetY;
-		}
-
 		public function onStructureCreate(m:Message):void {
 			var entityID:int = m.getInt(0);
 			var ownerID:int = m.getInt(1);
@@ -153,6 +87,72 @@ package engine.gameplay {
 			var y:Number = m.getNumber(4);
 
 			game.spawnStructure(entityID, ownerID, type, x, y);
+		}
+
+		public function onEntityDeath(m:Message):void {
+			var entityID:int = m.getInt(0);
+
+			var entity:Entity = Entity.getByID(entityID);
+
+			if (!entity) return Log.write("[multiplayer.ERROR] Attempted to kill invalid entity: ",entityID);
+
+			entity.onDeath();
+		}
+
+		// --------------------------------------------------------------------------------------------------------
+		// Entity action handlers
+		// --------------------------------------------------------------------------------------------------------
+
+		public function onUnitActionFollowPath(m:Message):void {
+			var entityID:int = m.getInt(0);
+			var nodeList:String = m.getString(1);
+
+			var entity:Entity = Entity.getByID(entityID);
+
+			if(!entity) return Log.write("[multiplayer.ERROR] Attempted to execute command on invalid entity: ", entityID);
+
+			var path:FlxPath = Utils.deserializePath(nodeList);
+
+			(entity as Unit).actionFollowPath(path);
+		}
+
+		public function onUnitActionHit(m:Message):void {
+			var entityID:int = m.getInt(0);
+			var targetID:int = m.getInt(1);
+			var damage:int = m.getInt(2);
+
+			var entity:Entity = Entity.getByID(entityID);
+			var target:Entity = Entity.getByID(targetID);
+
+			if(!entity) return Log.write("[multiplayer.ERROR] Attempted to request attack to an invalid entity: ", entityID);
+			if(!target) return Log.write("[multiplayer.ERROR] Attempted to target attack on an invalid entity: ", targetID);
+
+			(entity as Unit).actionHit(target, damage);
+		}
+
+		public function onUnitActionStop(m:Message):void {
+			var entityID:int = m.getInt(0);
+			var stopX:int = m.getInt(1);
+			var stopY:int = m.getInt(2);
+
+			var entity:Entity = Entity.getByID(entityID);
+
+			if(!entity) return Log.write("[multiplayer.ERROR] Attempted to request attack to an invalid entity: ", entityID);
+
+			(entity as Unit).actionStop(stopX, stopY);
+		}
+
+		public function onUnitActionGather(m:Message):void {
+			var entityID:int = m.getInt(0);
+			var targetID:int = m.getInt(1);
+
+			var entity:Entity = Entity.getByID(entityID);
+			var target:Entity = Entity.getByID(targetID);
+
+			if(!entity) return Log.write("[multiplayer.ERROR] Attempted to request gather to an invalid entity: ", entityID);
+			if(!target) return Log.write("[multiplayer.ERROR] Attempted to target gather on an invalid entity: ", targetID);
+
+			(entity as Unit).actionGather(target);
 		}
 	}
 }

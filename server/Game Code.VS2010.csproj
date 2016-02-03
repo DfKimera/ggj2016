@@ -52,6 +52,7 @@
     <Compile Include="RTSLobby.cs" />
     <Compile Include="IMultiplayerController.cs" />
     <Compile Include="RoomInstance.cs" />
+    <Compile Include="Config.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

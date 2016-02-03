@@ -55,7 +55,7 @@ package engine.states {
 			super.create();
 
 			FlxG.debug = true;
-			FlxG.visualDebug = true;
+			FlxG.visualDebug = false;
 
 			Audio.setup();
 
@@ -67,16 +67,17 @@ package engine.states {
 
 			net.whenServerNotice.add(onKicked);
 
-			net.addMessageHandler(MessageTypes.CL_RESOURCE_UPDATE, multi.onResourceUpdate);
-			net.addMessageHandler(MessageTypes.CL_UNIT_ATTACK, multi.onUnitAttack);
-			net.addMessageHandler(MessageTypes.CL_UNIT_FOLLOW, multi.onUnitFollow);
-			net.addMessageHandler(MessageTypes.CL_UNIT_DEATH, multi.onUnitDeath);
-			net.addMessageHandler(MessageTypes.CL_UNIT_GATHER, multi.onUnitGather);
-			net.addMessageHandler(MessageTypes.CL_UNIT_MOVE, multi.onUnitMove);
+			net.addMessageHandler(MessageTypes.CL_UNIT_ACTION_HIT, multi.onUnitActionHit);
+			net.addMessageHandler(MessageTypes.CL_UNIT_ACTION_FOLLOW_PATH, multi.onUnitActionFollowPath);
+			net.addMessageHandler(MessageTypes.CL_UNIT_ACTION_GATHER, multi.onUnitActionGather);
+			net.addMessageHandler(MessageTypes.CL_UNIT_ACTION_STOP, multi.onUnitActionStop);
 
-			net.addMessageHandler(MessageTypes.SV_CHAT_MESSAGE, multi.onChatMessage);
+			net.addMessageHandler(MessageTypes.CL_ENTITY_DEATH, multi.onEntityDeath);
+			net.addMessageHandler(MessageTypes.CL_RESOURCE_UPDATE, multi.onResourceUpdate);
+
 			net.addMessageHandler(MessageTypes.SV_UNIT_CREATE, multi.onUnitCreate);
 			net.addMessageHandler(MessageTypes.SV_STRUCTURE_CREATE, multi.onStructureCreate);
+			net.addMessageHandler(MessageTypes.SV_CHAT_MESSAGE, multi.onChatMessage);
 			net.addMessageHandler(MessageTypes.SV_GAME_BEGIN, onGameBegin);
 
 			net.sendMessage(MessageTypes.CL_READY);
@@ -168,18 +169,18 @@ package engine.states {
 			if(!RightClick.hasJustPressed() || !selection.hasUnitSelected()) return;
 
 			var hasTargetedStructure:Boolean = FlxG.overlap(target, $structures, function (pos:FlxObject, structure:Structure):void {
-				selection.commandSelected(Unit.COMMAND_ATTACK, [structure, target]);
+				selection.commandSelected(Unit.COMMAND_GATHER, [structure, target]);
 			});
 
 			if(hasTargetedStructure) return;
 
 			var hasTargetedUnit:Boolean = FlxG.overlap(target, $units, function (pos:FlxObject, unit:Unit):void {
-				selection.commandSelected(Unit.COMMAND_ATTACK, [unit, target]);
+				selection.commandSelected(Unit.COMMAND_GATHER, [unit, target]);
 			});
 
 			if(hasTargetedUnit) return;
 
-			selection.commandSelected(Unit.COMMAND_MOVE, [FlxG.mouse.x, FlxG.mouse.y]);
+			selection.commandSelected(Unit.COMMAND_WALK, [FlxG.mouse.x, FlxG.mouse.y]);
 		}
 
 		public function spawnUnit(entityID:int, ownerID:int, type:String, x:Number, y:Number):void {

@@ -12,13 +12,12 @@ package game.stats {
 			health = 100;
 
 			attackDistance = 64;
-			attackRate = 20;
-			attackCooldown = 0;
+			attackCooldown = 15;
 			attackDamage = 10;
 
-			huntTimeout = 50;
+			huntCooldown = 50;
 
-			speed = 300;
+			walkSpeed = 300;
 
 		}
 	}
