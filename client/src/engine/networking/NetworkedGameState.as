@@ -16,6 +16,7 @@ package engine.networking {
 		public override function create():void {
 			super.create();
 
+			Log.write("[networking] New state: ", this);
 			Log.write("[networking] Registering networking service...");
 
 			net = Networking.getInstance();
@@ -45,6 +46,8 @@ package engine.networking {
 			return Player.getByID(net.hostPlayerID);
 		}
 
-		public function networkReady(client:Client):void { }
+		public function networkReady(client:Client):void {
+			Log.write("[networking] Network is ready!", client);
+		}
 	}
 }

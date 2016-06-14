@@ -15,7 +15,9 @@ namespace GGJ2016 {
 		}
 
 		public void onPlayerJoined(Player player) {
+			Console.WriteLine("[lobby] Player joined: " + player.Id);
 			if(room.numPlayers >= RoomInstance.MAX_PLAYERS) {
+				Console.WriteLine("[lobby] Player cap reached, kicking... (current=" + room.numPlayers + ", max=" + RoomInstance.MAX_PLAYERS + ")");
 				player.kick("max_players");
 				return;
 			}
@@ -23,6 +25,7 @@ namespace GGJ2016 {
 			player.nickname = player.JoinData["nickname"];
 
 			if(player.nickname.ToUpper() == "SYSTEM") {
+				Console.WriteLine("[lobby] Player uses restricted nickname, kicking... ");
 				player.kick("nickname_not_allowed");
 				return;
 			}
@@ -36,10 +39,13 @@ namespace GGJ2016 {
 			foreach(Player p in room.Players) {
 
 				if(p.Id != player.Id) { // send to everyone but joining player his own data
+					Console.WriteLine("[lobby] Sending " + p + " data about " + player);
 					p.Send(MessageTypes.SV_PLAYER_REGISTER, p.Id, p.nickname, false, p.isHost);
 				}
 
 				// send him everyone's data (including his own)
+
+				Console.WriteLine("[lobby] Sending " + player + " data about " + p);
 				player.Send(MessageTypes.SV_PLAYER_REGISTER, p.Id, p.nickname, (player.Id == p.Id), p.isHost);
 			}
 		}
@@ -55,6 +61,7 @@ namespace GGJ2016 {
 		}
 
 		public void handleMessage(Player player, Message message) {
+			Console.WriteLine("[lobby] [IN] " + player + ": " + message);
 			switch(message.Type) {
 				case MessageTypes.CL_CHAT_MESSAGE: 
 					onChatMessage(player, message); 
@@ -66,6 +73,7 @@ namespace GGJ2016 {
 		}
 
 		public void onChatMessage(Player player, Message message) {
+			Console.WriteLine("[lobby.chat] <" + player + ">: " + message);
 			Message m = Message.Create(MessageTypes.SV_CHAT_MESSAGE, "", player.nickname, message.GetString(0));
 			room.Broadcast(m);
 		}

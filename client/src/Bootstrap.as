@@ -23,7 +23,7 @@ package {
 
 			Bootstrap.instance = this;
 			Bootstrap.game = new Game();
-
+			
 			addChild(Bootstrap.game);
 
 		}

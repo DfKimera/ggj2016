@@ -1,28 +1,6 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Player.cs">
-    <Files>
-      <File FileName="RoomInstance.cs" Line="49" Column="4" />
-      <File FileName="Player.cs" Line="19" Column="10" />
-      <File FileName="IMultiplayerController.cs" Line="1" Column="1" />
-      <File FileName="MessageTypes.cs" Line="15" Column="38" />
-      <File FileName="RTSMatch.cs" Line="108" Column="50" />
-      <File FileName="RTSLobby.cs" Line="33" Column="4" />
-    </Files>
-    <Pads>
-      <Pad Id="ProjectPad">
-        <State expanded="True">
-          <Node name="Game Code.VS2010" expanded="True">
-            <Node name="References" expanded="True" />
-            <Node name="Player.cs" selected="True" />
-          </Node>
-          <Node name="Player.IO Test Server.VS2010" expanded="True">
-            <Node name="References" expanded="True" />
-          </Node>
-        </State>
-      </Pad>
-    </Pads>
-  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workbench />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>

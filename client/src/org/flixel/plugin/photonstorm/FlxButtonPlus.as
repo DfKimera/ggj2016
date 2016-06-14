@@ -63,7 +63,7 @@ package org.flixel.plugin.photonstorm
 		/**
 		 * The parameters passed to the _onClick function when the button is clicked
 		 */
-		private var onClickParams:Array;
+		public var onClickParams:Array;
 		
 		/**
 		 * This function is called when the button is hovered over

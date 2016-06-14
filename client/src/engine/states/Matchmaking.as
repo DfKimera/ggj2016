@@ -1,6 +1,4 @@
 package engine.states {
-
-	import engine.gameplay.Level;
 	import engine.networking.NetworkedGameState;
 	import engine.services.Log;
 	import engine.ui.UITextInput;
@@ -101,6 +99,24 @@ package engine.states {
 				$rooms.add(new FlxButtonPlus(50, 200 + (int(i) * 30), onRoomClick, [room.id], "Match -  " + room.id, 400, 28));
 			}
 
+			if(Config.MATCH_AUTO_SETUP) {
+				trace("[automatch] Automatch is enabled, rooms=", rooms);
+				this.handleAutoMatch(rooms);
+			}
+
+		}
+
+		public function handleAutoMatch(rooms:Array):void {
+
+			if(rooms.length > 0) {
+				var firstRoom:RoomInfo = rooms.pop();
+				trace("[automatch] Auto joining room: ", firstRoom.id);
+				onRoomClick(firstRoom.id);
+				return;
+			}
+
+			trace("[automatch] Auto creating room...");
+			onRoomOpen("Automatch room - " + (new Date()).toTimeString());
 		}
 
 		public function onNicknameChange(nickname:String):void {
@@ -119,7 +135,9 @@ package engine.states {
 
 			net.createRoom(name + " - #" + randomID);
 
-			refreshRooms();
+			if(!Config.MATCH_AUTO_SETUP) {
+				refreshRooms();
+			}
 		}
 
 		public function onRoomEnter(conn:Connection):void {
